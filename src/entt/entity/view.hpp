@@ -26,6 +26,26 @@ template<typename>
 class registry;
 
 
+// TODO
+
+template<typename...>
+struct matcher_factory;
+
+template<typename... AllOf, typename... AnyOf, typename... NoneOf>
+struct matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>> final {
+    template<typename... Component>
+    using all_of = matcher_factory<std::tuple<AllOf..., Component...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>;
+
+    template<typename... Component>
+    using any_of = matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf..., Component...>, std::tuple<NoneOf...>>;
+
+    template<typename... Component>
+    using none_of = matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf..., Component...>>;
+};
+
+using matcher = matcher_factory<std::tuple<>, std::tuple<>, std::tuple<>>;
+
+
 /**
  * @brief Persistent view.
  *

@@ -128,6 +128,88 @@ class registry {
         (pool<Component>().destruction().template connect<&registry::destroying<Component, Indexes, Component...>>(), ...);
     }
 
+    // TODO move static functions above after types
+
+    template<typename... AllOf, typename... AnyOf, typename... NoneOf, std::size_t... Indexes>
+    static void creating2allanyofbis(registry &reg, const Entity entity, matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>) {
+        auto *handler = static_cast<handler_type<sizeof...(AllOf)> *>(reg.handlers[handler_family::type<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>>].get());
+        const bool match = reg.has<AllOf...>(entity) && (!sizeof...(AnyOf) || ... || reg.has<AnyOf>(entity)) && (!reg.has<NoneOf>(entity) && ...);
+
+        if(match && !handler->has(entity)) {
+            handler->construct(entity, reg.pools[component_family::type<AllOf>]->get(entity)...);
+        }
+    }
+
+    template<typename Matcher>
+    static void creating2allanyof(registry &reg, const Entity entity) {
+        creating2allanyofbis(reg, entity, Matcher{});
+    }
+
+    template<typename Matcher, std::size_t N, typename... NoneOf>
+    static void creating2noneof(registry &reg, const Entity entity) {
+        auto *handler = static_cast<handler_type<N> *>(reg.handlers[handler_family::type<Matcher>].get());
+
+        if(handler->has(entity)) {
+            handler->destroy(entity);
+        }
+    }
+
+    template<typename Matcher, std::size_t N, typename Comp, std::size_t Index>
+    static void destroying2allof(registry &reg, const Entity entity) {
+        auto *handler = static_cast<handler_type<N> *>(reg.handlers[handler_family::type<Matcher>].get());
+        const sparse_set<Entity> &cpool = reg.pool<Comp>();
+        const auto last = *cpool.cbegin();
+
+        if(handler->has(last)) {
+            handler->get(last)[Index] = cpool.get(entity);
+        }
+
+        if(handler->has(entity)) {
+            handler->destroy(entity);
+        }
+    }
+
+    template<typename Matcher, std::size_t N, typename... AnyOf>
+    static void destroying2anyof(registry &reg, const Entity entity) {
+        auto *handler = static_cast<handler_type<N> *>(reg.handlers[handler_family::type<Matcher>].get());
+
+        if(handler->has(entity) && !(reg.has<AnyOf>() || ...)) {
+            handler->destroy(entity);
+        }
+    }
+
+    template<typename... AllOf, typename... AnyOf, typename... NoneOf, std::size_t... Indexes>
+    static void destroying2noneofbis(registry &reg, const Entity entity, matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>) {
+        // TODO identical to creating2allanyofbis
+
+        auto *handler = static_cast<handler_type<sizeof...(AllOf)> *>(reg.handlers[handler_family::type<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>>].get());
+        const bool match = reg.has<AllOf...>(entity) && (!sizeof...(AnyOf) || ... || reg.has<AnyOf>(entity)) && (!reg.has<NoneOf>(entity) && ...);
+
+        if(match && !handler->has(entity)) {
+            handler->construct(entity, reg.pools[component_family::type<AllOf>]->get(entity)...);
+        }
+    }
+
+    template<typename Matcher>
+    static void destroying2noneof(registry &reg, const Entity entity) {
+        destroying2noneofbis(reg, entity, Matcher{});
+    }
+
+    template<typename... AllOf, typename... AnyOf, typename... NoneOf, std::size_t... Indexes>
+    void connect2(matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>, std::index_sequence<Indexes...>) {
+        (assure<AllOf>(), ...);
+        (assure<AnyOf>(), ...);
+        (assure<NoneOf>(), ...);
+        (pool<AllOf>().construction().template connect<&registry::creating2allanyof<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>>>(), ...);
+        (pool<AnyOf>().construction().template connect<&registry::creating2allanyof<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>>>(), ...);
+        (pool<NoneOf>().construction().template connect<&registry::creating2noneof<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>, sizeof...(AllOf), NoneOf...>>(), ...);
+        (pool<AllOf>().destruction().template connect<&registry::destroying2allof<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>, sizeof...(AllOf), AllOf, Indexes>>(), ...);
+        (pool<AnyOf>().destruction().template connect<&registry::destroying2anyof<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>, sizeof...(AllOf), AnyOf...>>(), ...);
+        (pool<NoneOf>().destruction().template connect<&registry::destroying2noneofbis<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>>>(), ...);
+    }
+
+    // TODO refresh/rebuild should use matcher
+
     template<typename... Component, std::size_t... Indexes>
     void rebuild(const typename component_family::family_type ctype, std::index_sequence<Indexes...>) {
         auto index = sizeof...(Indexes);
@@ -1230,32 +1312,34 @@ public:
      * @tparam Component Types of components used to construct the view.
      * @return A newly created persistent view.
      */
-    template<typename... Component>
-    entt::persistent_view<Entity, Component...> persistent_view() {
-        static_assert(sizeof...(Component) > 1);
-        const auto htype = handler_family::type<Component...>;
+    // TODO
+    template<typename... AllOf, typename... AnyOf, typename... NoneOf>
+    entt::persistent_view<Entity, AllOf...> persistent_view(matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>) {
+        const auto htype = handler_family::type<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>>;
 
         if(!(htype < handlers.size())) {
             handlers.resize(htype + 1);
         }
 
         if(!handlers[htype]) {
-            // (assure<Component>(), ...);
-            // connect<Component...>(std::make_index_sequence<sizeof...(Component)>{});
-            connect<Component...>(std::make_index_sequence<sizeof...(Component)>{});
-            invalidate.sink().template connect<&registry::refresh<Component...>>(this);
+            // template<typename... AllOf, typename... AnyOf, typename... NoneOf, std::size_t... Indexes>
+            // void connect2(matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>, std::index_sequence<Indexes...>) {
+            connect2(matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>{}, std::make_index_sequence<sizeof...(AllOf)>{});
+            // connect<AllOf...>(std::make_index_sequence<sizeof...(AllOf)>{});
+            // TODO
+            // invalidate.sink().template connect<&registry::refresh<AllOf...>>(this);
 
-            handlers[htype] = std::make_unique<handler_type<sizeof...(Component)>>();
-            auto *handler = static_cast<handler_type<sizeof...(Component)> *>(handlers[htype].get());
+            handlers[htype] = std::make_unique<handler_type<sizeof...(AllOf)>>();
+            auto *handler = static_cast<handler_type<sizeof...(AllOf)> *>(handlers[htype].get());
 
-            for(const auto entity: view<Component...>()) {
-                handler->construct(entity, pools[component_family::type<Component>]->get(entity)...);
+            for(const auto entity: view<AllOf...>()) {
+                handler->construct(entity, pools[component_family::type<AllOf>]->get(entity)...);
             }
         }
 
         return {
-            static_cast<handler_type<sizeof...(Component)> *>(handlers[htype].get()),
-            &pool<Component>()...
+            static_cast<handler_type<sizeof...(AllOf)> *>(handlers[htype].get()),
+            &pool<AllOf>()...
         };
     }
 
@@ -1301,10 +1385,23 @@ public:
      * @tparam Component Types of components used to construct the view.
      * @return A newly created persistent view.
      */
+    // TODO
+    template<typename... AllOf, typename... AnyOf, typename... NoneOf>
+    inline entt::persistent_view<Entity, AllOf...> persistent_view(matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>) const {
+        static_assert(std::conjunction_v<std::is_const<AllOf>...>);
+        return const_cast<registry *>(this)->persistent_view(matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>{});
+    }
+
+    // TODO
+
+    template<typename... Component>
+    inline entt::persistent_view<Entity, Component...> persistent_view() {
+        return persistent_view(matcher::all_of<Component...>{});
+    }
+
     template<typename... Component>
     inline entt::persistent_view<Entity, Component...> persistent_view() const {
-        static_assert(std::conjunction_v<std::is_const<Component>...>);
-        return const_cast<registry *>(this)->persistent_view<Component...>();
+        return persistent_view(matcher::all_of<Component...>{});
     }
 
     /**
