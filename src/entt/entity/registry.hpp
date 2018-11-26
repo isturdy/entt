@@ -231,6 +231,27 @@ class registry {
         rebuild<Component...>(ctype, std::make_index_sequence<sizeof...(Component)>{});
     }
 
+    template<typename Matcher, typename... Component, std::size_t... Indexes>
+    void rebuild2(const typename component_family::family_type ctype, std::index_sequence<Indexes...>) {
+        auto index = sizeof...(Indexes);
+        ((index = (component_family::type<Component> == ctype) ? Indexes : index), ...);
+
+        if(index != sizeof...(Indexes)) {
+            auto *handler = static_cast<handler_type<sizeof...(Component)> *>(handlers[handler_family::type<Matcher>].get());
+            auto cbegin = handler->sparse_set<Entity>::cbegin();
+            const auto &cpool = *pools[ctype];
+
+            for(auto &&indexes: *handler) {
+                indexes[index] = cpool.get(*(cbegin++));
+            }
+        }
+    }
+
+    template<typename Matcher, typename... Component>
+    void refresh2(const typename component_family::family_type ctype) {
+        rebuild2<Matcher, Component...>(ctype, std::make_index_sequence<sizeof...(Component)>{});
+    }
+
     template<typename Component>
     void assure() {
         const auto ctype = component_family::type<Component>;
@@ -1327,6 +1348,7 @@ public:
             connect2(matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>{}, std::make_index_sequence<sizeof...(AllOf)>{});
             // connect<AllOf...>(std::make_index_sequence<sizeof...(AllOf)>{});
             // TODO
+            invalidate.sink().template connect<&registry::refresh2<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>, AllOf...>>(this);
             // invalidate.sink().template connect<&registry::refresh<AllOf...>>(this);
 
             handlers[htype] = std::make_unique<handler_type<sizeof...(AllOf)>>();
