@@ -130,7 +130,7 @@ class registry {
 
     // TODO move static functions above after types
 
-    template<typename... AllOf, typename... AnyOf, typename... NoneOf, std::size_t... Indexes>
+    template<typename... AllOf, typename... AnyOf, typename... NoneOf>
     static void creating2allanyofbis(registry &reg, const Entity entity, matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>) {
         auto *handler = static_cast<handler_type<sizeof...(AllOf)> *>(reg.handlers[handler_family::type<matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>>].get());
         const bool match = reg.has<AllOf...>(entity) && (!sizeof...(AnyOf) || ... || reg.has<AnyOf>(entity)) && (!reg.has<NoneOf>(entity) && ...);
@@ -178,7 +178,7 @@ class registry {
         }
     }
 
-    template<typename... AllOf, typename... AnyOf, typename... NoneOf, std::size_t... Indexes>
+    template<typename... AllOf, typename... AnyOf, typename... NoneOf>
     static void destroying2noneofbis(registry &reg, const Entity entity, matcher_factory<std::tuple<AllOf...>, std::tuple<AnyOf...>, std::tuple<NoneOf...>>) {
         // TODO identical to creating2allanyofbis
 
