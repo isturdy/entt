@@ -4,7 +4,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include "../config/config.h"
+#include "config/config.h"
 
 
 namespace entt {

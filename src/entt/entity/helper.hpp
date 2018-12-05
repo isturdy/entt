@@ -3,8 +3,8 @@
 
 
 #include <type_traits>
-#include "../core/hashed_string.hpp"
-#include "../signal/sigh.hpp"
+#include "core/hashed_string.hpp"
+#include "signal/sigh.hpp"
 #include "registry.hpp"
 
 

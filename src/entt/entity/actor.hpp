@@ -5,7 +5,7 @@
 #include <cassert>
 #include <utility>
 #include <type_traits>
-#include "../config/config.h"
+#include "config/config.h"
 #include "registry.hpp"
 #include "entity.hpp"
 

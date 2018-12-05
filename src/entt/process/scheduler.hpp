@@ -8,7 +8,7 @@
 #include <utility>
 #include <algorithm>
 #include <type_traits>
-#include "../config/config.h"
+#include "config/config.h"
 #include "process.hpp"
 
 

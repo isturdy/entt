@@ -4,7 +4,7 @@
 
 #include <type_traits>
 #include <utility>
-#include "../config/config.h"
+#include "config/config.h"
 
 
 namespace entt {

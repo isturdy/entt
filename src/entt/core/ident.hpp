@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <utility>
 #include <tuple>
-#include "../config/config.h"
+#include "config/config.h"
 
 
 namespace entt {

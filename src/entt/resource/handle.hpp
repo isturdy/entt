@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 #include <cassert>
-#include "../config/config.h"
+#include "config/config.h"
 
 
 namespace entt {

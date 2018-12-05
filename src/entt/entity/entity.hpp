@@ -2,7 +2,7 @@
 #define ENTT_ENTITY_ENTITY_HPP
 
 
-#include "../config/config.h"
+#include "config/config.h"
 #include "entt_traits.hpp"
 
 

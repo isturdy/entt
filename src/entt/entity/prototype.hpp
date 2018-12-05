@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <type_traits>
 #include <unordered_map>
-#include "../config/config.h"
+#include "config/config.h"
 #include "registry.hpp"
 #include "entity.hpp"
 

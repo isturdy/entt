@@ -6,7 +6,7 @@
 #include <utility>
 #include <algorithm>
 #include <type_traits>
-#include "../core/hashed_string.hpp"
+#include "core/hashed_string.hpp"
 #include "meta.hpp"
 
 

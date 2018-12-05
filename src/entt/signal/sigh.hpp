@@ -7,7 +7,7 @@
 #include <vector>
 #include <functional>
 #include <type_traits>
-#include "../config/config.h"
+#include "config/config.h"
 #include "delegate.hpp"
 
 

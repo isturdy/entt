@@ -10,7 +10,7 @@
 #include <cstddef>
 #include <utility>
 #include <type_traits>
-#include "../core/hashed_string.hpp"
+#include "core/hashed_string.hpp"
 
 
 namespace entt {

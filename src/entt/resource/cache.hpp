@@ -6,8 +6,8 @@
 #include <utility>
 #include <type_traits>
 #include <unordered_map>
-#include "../config/config.h"
-#include "../core/hashed_string.hpp"
+#include "config/config.h"
+#include "core/hashed_string.hpp"
 #include "handle.hpp"
 #include "loader.hpp"
 

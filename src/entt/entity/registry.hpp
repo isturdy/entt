@@ -14,10 +14,10 @@
 #include <iterator>
 #include <algorithm>
 #include <type_traits>
-#include "../config/config.h"
-#include "../core/algorithm.hpp"
-#include "../core/family.hpp"
-#include "../signal/sigh.hpp"
+#include "config/config.h"
+#include "core/algorithm.hpp"
+#include "core/family.hpp"
+#include "signal/sigh.hpp"
 #include "entity.hpp"
 #include "entt_traits.hpp"
 #include "snapshot.hpp"

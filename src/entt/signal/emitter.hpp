@@ -10,8 +10,8 @@
 #include <memory>
 #include <vector>
 #include <list>
-#include "../config/config.h"
-#include "../core/family.hpp"
+#include "config/config.h"
+#include "core/family.hpp"
 
 
 namespace entt {

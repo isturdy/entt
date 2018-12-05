@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <cstddef>
 #include <atomic>
-#include "../config/config.h"
+#include "config/config.h"
 
 
 namespace entt {
